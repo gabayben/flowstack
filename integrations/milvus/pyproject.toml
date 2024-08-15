@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "flowstack-milvus"
+version = "0.1.0"
+description = ""
+authors = ["bensg <gabay67890@gmail.com>"]
+packages = [{ include = "flowstack" }]
+exclude = ["flowstack.milvus.utils"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flowstack = { path = "../../flowstack/" }
+pymilvus = "^2.4.5"
+flagembedding = { version = "^1.2.11", optional = true }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

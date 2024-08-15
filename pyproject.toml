@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "flowstack-monorepo"
+version = "0.1.0"
+description = ""
+authors = ["bensg <gabay67890@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flowstack = { path = "flowstack/" }
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+flowstack-openai = { path = "integrations/openai/" }
+flowstack-milvus = { path = "integrations/milvus/" }
+flowstack-tavily = { path = "integrations/tavily/" }
+flowstack-wikipedia = { path = "integrations/wikipedia/" }
+flagembedding = "^1.2.11"
