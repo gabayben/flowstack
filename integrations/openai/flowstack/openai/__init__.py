@@ -1,2 +1,2 @@
-from .chat_generator import OpenAIChatGenerator
+from .llm import OpenAILLM
 from .embedder import OpenAIEmbedder

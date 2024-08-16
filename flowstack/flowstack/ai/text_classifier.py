@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 import asyncio
-from typing import Any, NamedTuple, Optional, final, override
+from typing import Any, NamedTuple, Optional, TYPE_CHECKING, final, override
 
-from flowstack.ai import ChatGenerator
 from flowstack.artifacts import Text, TextLike
 from flowstack.core.utils.threading import run_async
 from flowstack.prompts import PromptLike, PromptStack
+
+if TYPE_CHECKING:
+    from flowstack.ai import LLM
 
 class TextClassification(NamedTuple):
     text: str
@@ -13,6 +15,10 @@ class TextClassification(NamedTuple):
     metadata: dict[str, Any] = {}
 
 class TextClassifier(ABC):
+    @classmethod
+    def from_llm(cls, llm: LLM, prompt: PromptLike) -> 'TextClassifier':
+        return LLMTextClassifier(llm, prompt)
+
     @abstractmethod
     def classify(
         self,
@@ -81,8 +87,8 @@ class BaseTextClassifier(TextClassifier, ABC):
         )
 
 class LLMTextClassifier(BaseTextClassifier):
-    def __init__(self, chat_generator: ChatGenerator, prompt: PromptLike):
-        self._chat_generator = chat_generator
+    def __init__(self, llm: LLM, prompt: PromptLike):
+        self._llm = llm
         self._stack = PromptStack(prompt)
 
     def _classify(
@@ -95,7 +101,7 @@ class LLMTextClassifier(BaseTextClassifier):
         for text in texts:
             stack = self._stack.model_copy(deep=True)
             stack.add_user_message(text)
-            message = self._chat_generator.chat(stack, **kwargs)
+            message = self._llm.generate(stack, **kwargs)
             results.append(TextClassification(str(message)))
         return results
 
@@ -110,6 +116,6 @@ class LLMTextClassifier(BaseTextClassifier):
         for text in texts:
             stack = self._stack.model_copy(deep=True)
             stack.add_user_message(text)
-            tasks.append(self._chat_generator.achat(stack, **kwargs))
+            tasks.append(self._llm.agenerate(stack, **kwargs))
         messages = await asyncio.gather(*tasks)
         return [TextClassification(str(message)) for message in messages]

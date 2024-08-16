@@ -8,4 +8,4 @@ from .types import (
 )
 from .models import Serializable
 from .filtering import FilterOperator, FilterCondition, MetadataFilter, MetadataFilters, MetadataFilterInfo
-from .ai import ToolCall, ToolCallChunk, InvalidToolCall, UsageMetadata
+from .ai import ValidToolCall, InvalidToolCall, ToolCall, UsageMetadata

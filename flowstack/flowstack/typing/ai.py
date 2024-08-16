@@ -1,21 +1,17 @@
-from typing import Any, NotRequired, Optional, TypedDict
+from typing import Any, NotRequired, Optional, TypedDict, Union
 
-class ToolCall(TypedDict):
+class ValidToolCall(TypedDict):
     name: str
     args: dict[str, Any]
     id: NotRequired[Optional[str]]
-
-class ToolCallChunk(TypedDict):
-    name: NotRequired[Optional[str]]
-    args: NotRequired[Optional[str]]
-    id: NotRequired[Optional[str]]
-    index: NotRequired[Optional[int]]
 
 class InvalidToolCall(TypedDict):
     name: NotRequired[Optional[str]]
     args: NotRequired[Optional[str]]
     id: NotRequired[Optional[str]]
     error: NotRequired[Optional[str]]
+
+ToolCall = Union[ValidToolCall, InvalidToolCall]
 
 class UsageMetadata(TypedDict):
     prompt_tokens: int
