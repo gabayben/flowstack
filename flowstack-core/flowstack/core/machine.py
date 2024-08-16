@@ -199,7 +199,12 @@ class StateMachine(BaseModel, Generic[_Data]):
         return self._create_actions(transition.after)
 
     def _transition_guards(self, trigger: str) -> Optional[_MachineGuards]:
-        pass
+        transition = self._get_transition(trigger)
+        if transition.guards is None:
+            return None
+        if isinstance(transition.guards, list):
+            return [lambda **kwargs: guard(self._context, **kwargs) for guard in transition.guards]
+        return lambda **kwargs: transition.guards(self._context, **kwargs)
 
     def _after_transition(self, after: Optional[AfterTransition[_Data]]) -> Optional[Actions[_Data]]:
         if after is None:
