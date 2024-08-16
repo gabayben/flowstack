@@ -111,20 +111,19 @@ class StateMachine(BaseModel, Generic[_Data]):
 
     def add_states(self, states: dict[str, StateOptions]) -> None:
         for state, options in states.items():
-            self.add_state(
-                state,
-                enter=options.enter,
-                exit=options.exit,
-                final=options.final
-            )
+            self.add_state(state, **options.model_dump(exclude={'name'}))
 
     def add_state(
         self,
         state: str,
         enter: Optional[Actions[_Data]] = None,
         exit: Optional[Actions[_Data]] = None,
+        auto_exit: bool = False,
         final: bool = False
     ) -> None:
+        if auto_exit:
+            enter = enter or []
+            enter.append(next_state) # type: ignore
         self._states[state] = StateOptions(
             state,
             enter=enter,
@@ -157,22 +156,16 @@ class StateMachine(BaseModel, Generic[_Data]):
 
     def add_transitions(self, transitions: dict[str, TransitionOptions]) -> None:
         for trigger, options in transitions.items():
-            self.add_transition(
-                trigger,
-                options.source,
-                options.target,
-                before=options.before,
-                after=options.after,
-                guards=options.guards
-            )
+            self.add_transition(trigger, **options.model_dump(exclude={'trigger'}))
 
     def add_transition(
         self,
         trigger: str,
-        source: str,
-        target: Union[str, list[str]],
+        source: Union[str, list[str]],
+        target: Optional[str],
         before: Optional[Actions[_Data]] = None,
         after: Optional[AfterTransition[_Data]] = None,
+        prepare: Optional[Actions[_Data]] = None,
         guards: Optional[Guards[_Data]] = None
     ) -> None:
         self._transitions[trigger] = TransitionProps(
@@ -181,6 +174,7 @@ class StateMachine(BaseModel, Generic[_Data]):
             target,
             before=before,
             after=self._after_transition(after),
+            prepare=prepare,
             guards=guards
         )
         self._machine.add_transition(
@@ -189,6 +183,7 @@ class StateMachine(BaseModel, Generic[_Data]):
             target,
             before=self._before_transition_actions(trigger),
             after=self._after_transition_actions(trigger),
+            prepare=self._get_prepare_actions(trigger),
             conditions=self._transition_guards(trigger)
         )
 
@@ -203,6 +198,12 @@ class StateMachine(BaseModel, Generic[_Data]):
         if transition.after is None:
             return None
         return self._create_actions(transition.after)
+
+    def _get_prepare_actions(self, trigger: str) -> Optional[_MachineActions]:
+        transition = self._get_transition(trigger)
+        if transition.prepare is None:
+            return None
+        return self._create_actions(transition.prepare)
 
     def _transition_guards(self, trigger: str) -> Optional[_MachineGuards]:
         transition = self._get_transition(trigger)

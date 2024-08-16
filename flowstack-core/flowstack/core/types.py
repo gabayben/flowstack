@@ -71,8 +71,9 @@ AfterTransition = AfterTransition
 
 class StateOptions(BaseModel, Generic[_Data]):
     name: str
-    enter: Optional[Actions[_Data]] = Field(default=None, exclude=True)
-    exit: Optional[Actions[_Data]] = Field(default=None, exclude=True)
+    enter: Optional[Actions[_Data]] = Field(default=None)
+    exit: Optional[Actions[_Data]] = Field(default=None)
+    auto_exit: bool = False
     final: bool = False
 
     def __init__(
@@ -93,19 +94,21 @@ class StateOptions(BaseModel, Generic[_Data]):
 
 class TransitionOptions(BaseModel, Generic[_Data]):
     trigger: str
-    source: str
-    target: Union[str, list[str]]
-    before: Optional[Actions[_Data]] = Field(default=None, exclude=True)
-    after: Optional[AfterTransition[_Data]] = Field(default=None, exclude=True)
-    guards: Optional[Guards[_Data]] = Field(default=None, exclude=True)
+    source: Union[str, list[str]]
+    target: Optional[str]
+    before: Optional[Actions[_Data]] = Field(default=None)
+    after: Optional[AfterTransition[_Data]] = Field(default=None)
+    prepare: Optional[Actions[_Data]] = Field(default=None)
+    guards: Optional[Guards[_Data]] = Field(default=None)
 
     def __init__(
         self,
         trigger: str,
-        source: str,
-        target: str,
+        source: Union[str, list[str]],
+        target: Optional[str],
         before: Optional[Action[_Data]] = None,
         after: Optional[AfterTransition[_Data]] = None,
+        prepare: Optional[Actions[_Data]] = None,
         guards: Optional[Guards[_Data]] = None
     ):
         super().__init__(
@@ -114,24 +117,27 @@ class TransitionOptions(BaseModel, Generic[_Data]):
             target=target,
             before=before,
             after=after,
+            prepare=prepare,
             guards=guards
         )
 
 class TransitionProps(BaseModel, Generic[_Data]):
     trigger: str
-    source: str
-    target: Union[str, list[str]]
+    source: Union[str, list[str]]
+    target: Optional[str]
     before: Optional[Actions[_Data]] = Field(default=None, exclude=True)
     after: Optional[Actions[_Data]] = Field(default=None, exclude=True)
+    prepare: Optional[Actions[_Data]] = Field(default=None, exclude=True)
     guards: Optional[Guards[_Data]] = Field(default=None, exclude=True)
 
     def __init__(
         self,
         trigger: str,
-        source: str,
-        target: Union[str, list[str]],
+        source: Union[str, list[str]],
+        target: Optional[str],
         before: Optional[Actions[_Data]] = None,
         after: Optional[Actions[_Data]] = None,
+        prepare: Optional[Actions[_Data]] = None,
         guards: Optional[Guards[_Data]] = None
     ):
         super().__init__(
@@ -140,5 +146,6 @@ class TransitionProps(BaseModel, Generic[_Data]):
             target=target,
             before=before,
             after=after,
+            prepare=prepare,
             guards=guards
         )

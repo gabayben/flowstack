@@ -16,7 +16,7 @@ class ImageClassifier(ABC):
         inputs: list[BlobLike],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         pass
 
     @abstractmethod
@@ -25,7 +25,7 @@ class ImageClassifier(ABC):
         inputs: list[BlobLike],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         pass
 
 class BaseImageClassifer(ImageClassifier, ABC):
@@ -35,7 +35,7 @@ class BaseImageClassifer(ImageClassifier, ABC):
         inputs: list[BlobLike],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         return self._classify(
             [Image.from_blob(input) for input in inputs],
             labels=labels,
@@ -48,7 +48,7 @@ class BaseImageClassifer(ImageClassifier, ABC):
         images: list[Image],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         pass
 
     @final
@@ -57,7 +57,7 @@ class BaseImageClassifer(ImageClassifier, ABC):
         inputs: list[BlobLike],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         return await self._aclassify(
             [Image.from_blob(input) for input in inputs],
             labels=labels,
@@ -69,7 +69,7 @@ class BaseImageClassifer(ImageClassifier, ABC):
         images: list[Image],
         labels: Optional[list[str]] = None,
         **kwargs
-    ) -> list[ImageClassification]:
+    ) -> list[list[ImageClassification]]:
         return await run_async(
             self._classify,
             images,
