@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, Optional, TypeVar, Generic, Union
+from typing import Any, Callable, Optional, Type, TypeVar, Generic, Union
 
 from pydantic import BaseModel, ConfigDict
 from transitions import Machine
@@ -65,7 +65,11 @@ class StateMachine(BaseModel, Generic[_Data]):
     )
 
     @property
-    def state(self) -> str:
+    def SchemaType(self) -> Type[_Data]:
+        return self._schema
+
+    @property
+    def state(self) -> Optional[str]:
         return self._state
 
     @property
@@ -78,14 +82,16 @@ class StateMachine(BaseModel, Generic[_Data]):
 
     def __init__(
         self,
-        initial_state: str,
+        schema: Type[_Data],
+        initial_state: Optional[str] = None,
+        initial_data: Optional[_Data] = None,
         states: dict[str, StateOptions[_Data]] = {},
-        transitions: dict[str, TransitionOptions[_Data]] = {},
-        initial_data: Optional[_Data] = None
+        transitions: dict[str, TransitionOptions[_Data]] = {}
     ):
         self._container = Container()
         self._model = _Model()
         self._machine = Machine(model=self._model)
+        self._schema = schema
         self._state = initial_state
         self._data = initial_data
         self._states: dict[str, StateOptions] = {}
