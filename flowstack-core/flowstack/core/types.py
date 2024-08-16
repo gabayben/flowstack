@@ -7,7 +7,7 @@ from flowstack.core import Action, ServiceType
 
 _Data = TypeVar('_Data')
 
-class WorkflowContext(Generic[_Data], ABC):
+class MachineContext(Generic[_Data], ABC):
     @property
     @abstractmethod
     def data(self) -> _Data:
@@ -46,11 +46,11 @@ class WorkflowContext(Generic[_Data], ABC):
         pass
 
 class SyncAction[D](Protocol):
-    def __call__(self, context: WorkflowContext[D], **kwargs) -> None:
+    def __call__(self, context: MachineContext[D], **kwargs) -> None:
         pass
 
 class AsyncAction[D](Protocol):
-    async def __call__(self, context: WorkflowContext[D], **kwargs) -> None:
+    async def __call__(self, context: MachineContext[D], **kwargs) -> None:
         pass
 
 type Action[D] = Union[SyncAction[D], AsyncAction[D]]

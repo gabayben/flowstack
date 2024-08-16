@@ -1,6 +1,6 @@
 from .typing import *
 from .types import (
-    WorkflowContext,
+    MachineContext,
     SyncAction,
     AsyncAction,
     Action,
@@ -12,4 +12,4 @@ from .types import (
     TransitionProps
 )
 from .ioc import *
-from .workflow import Workflow
+from .machine import StateMachine

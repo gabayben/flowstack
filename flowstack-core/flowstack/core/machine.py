@@ -14,7 +14,7 @@ from flowstack.core import (
     StateOptions,
     TransitionOptions,
     TransitionProps,
-    WorkflowContext
+    MachineContext
 )
 from flowstack.core.actions import next_state, trigger_transition
 from flowstack.core.utils.threading import run_async, run_sync
@@ -26,12 +26,12 @@ _MachineGuards = Union[Callable[..., bool], list[Callable[..., bool]]]
 class _Model:
     pass
 
-class _ContextImpl(WorkflowContext[_Data]):
+class _ContextImpl(MachineContext[_Data]):
     @property
     def data(self) -> _Data:
         return self._workflow.data
 
-    def __init__(self, workflow: 'Workflow[_Data]'):
+    def __init__(self, workflow: 'StateMachine[_Data]'):
         self._workflow = workflow
 
     def get_service[T](self, identifier: ServiceType[T]) -> T:
@@ -58,7 +58,7 @@ class _ContextImpl(WorkflowContext[_Data]):
     def update_data(self, data: _Data) -> None:
         self._workflow.update_data(data)
 
-class Workflow(BaseModel, Generic[_Data]):
+class StateMachine(BaseModel, Generic[_Data]):
     model_config = ConfigDict(
         extra='allow',
         arbitrary_types_allowed=True
@@ -73,7 +73,7 @@ class Workflow(BaseModel, Generic[_Data]):
         return self._data
 
     @property
-    def _context(self) -> WorkflowContext[_Data]:
+    def _context(self) -> MachineContext[_Data]:
         return _ContextImpl(self)
 
     def __init__(
