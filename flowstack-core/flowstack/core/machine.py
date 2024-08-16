@@ -29,34 +29,34 @@ class _Model:
 class _ContextImpl(MachineContext[_Data]):
     @property
     def data(self) -> _Data:
-        return self._workflow.data
+        return self._machine.data
 
-    def __init__(self, workflow: 'StateMachine[_Data]'):
-        self._workflow = workflow
+    def __init__(self, machine: 'StateMachine[_Data]'):
+        self._machine = machine
 
     def get_service[T](self, identifier: ServiceType[T]) -> T:
-        return self._workflow.get_service(identifier)
+        return self._machine.get_service(identifier)
 
     def change_state(self, state: str, **kwargs) -> None:
-        self._workflow.change_state(state, **kwargs)
+        self._machine.change_state(state, **kwargs)
 
     async def achange_state(self, state: str, **kwargs) -> None:
-        await self._workflow.achange_state(state, **kwargs)
+        await self._machine.achange_state(state, **kwargs)
 
     def next_state(self, **kwargs) -> None:
-        self._workflow.next_state(**kwargs)
+        self._machine.next_state(**kwargs)
 
     async def anext_state(self, **kwargs) -> None:
-        await self._workflow.anext_state(**kwargs)
+        await self._machine.anext_state(**kwargs)
 
     def trigger(self, event: str, **kwargs) -> None:
-        self._workflow.trigger(event, **kwargs)
+        self._machine.trigger(event, **kwargs)
 
     async def atrigger(self, event: str, **kwargs) -> None:
-        await self._workflow.atrigger(event, **kwargs)
+        await self._machine.atrigger(event, **kwargs)
 
     def update_data(self, data: _Data) -> None:
-        self._workflow.update_data(data)
+        self._machine.update_data(data)
 
 class StateMachine(BaseModel, Generic[_Data]):
     model_config = ConfigDict(
