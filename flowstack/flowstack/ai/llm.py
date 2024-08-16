@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, Iterator, final
+from typing import AsyncIterator, Iterator, Type, final
+
+from pydantic import BaseModel
 
 from flowstack.core.utils.threading import run_async, run_async_iter
 from flowstack.messages import BaseMessage
 from flowstack.prompts import PromptLike, PromptStack
+from flowstack.typing import ToolCall
+
+# LLM
 
 class LLM(ABC):
     @abstractmethod
@@ -53,3 +58,77 @@ class BaseLLM(LLM, ABC):
     async def _astream(self, stack: PromptStack, **kwargs) -> AsyncIterator[BaseMessage]:
         async for chunk in run_async_iter(self._stream, stack, **kwargs):
             yield chunk
+
+# Structured LLM
+
+class StructuredLLM(ABC):
+    @abstractmethod
+    def structured[T: BaseModel](
+        self,
+        input: PromptLike,
+        output_type: Type[T],
+        **kwargs
+    ) -> T:
+        pass
+
+    @abstractmethod
+    async def astructured[T: BaseModel](
+        self,
+        input: PromptLike,
+        output_type: Type[T],
+        **kwargs
+    ) -> T:
+        pass
+
+class BaseStructuredLLM(LLM, StructuredLLM, ABC):
+    @final
+    def structured[T: BaseModel](
+        self,
+        input: PromptLike,
+        output_type: Type[T],
+        **kwargs
+    ) -> T:
+        message = self.generate(input, **kwargs)
+        return self._extract_structured_output(message, output_type)
+
+    @final
+    async def astructured[T: BaseModel](
+        self,
+        input: PromptLike,
+        output_type: Type[T],
+        **kwargs
+    ) -> T:
+        message = await self.agenerate(input, **kwargs)
+        return self._extract_structured_output(message, output_type)
+
+    def _extract_structured_output[T: BaseModel](
+        self,
+        message: BaseMessage,
+        output_type: Type[T]
+    ) -> T:
+        pass
+
+# Tool LLM
+
+class ToolLLM(ABC):
+    @abstractmethod
+    def get_tool_calls(self, input: PromptLike, **kwargs) -> list[ToolCall]:
+        pass
+
+    @abstractmethod
+    async def aget_tool_calls(self, input: PromptLike, **kwargs) -> list[ToolCall]:
+        pass
+
+class BaseToolLLM(LLM, ToolLLM, ABC):
+    @final
+    def get_tool_calls(self, input: PromptLike, **kwargs) -> list[ToolCall]:
+        message = self.generate(input, **kwargs)
+        return self._extract_tool_calls(message)
+
+    @final
+    async def aget_tool_calls(self, input: PromptLike, **kwargs) -> list[ToolCall]:
+        message = await self.agenerate(input, **kwargs)
+        return self._extract_tool_calls(message)
+
+    def _extract_tool_calls(self, message: BaseMessage) -> list[ToolCall]:
+        pass
