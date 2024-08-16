@@ -9,6 +9,8 @@ from flowstack.typing import ToolCall
 class ToolLLM(ABC):
     @classmethod
     def from_llm(cls, llm: LLM) -> 'ToolLLM':
+        if isinstance(llm, ToolLLM):
+            return llm
         return _DelegateToolLLM(llm)
 
     @abstractmethod
