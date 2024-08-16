@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import final
+from typing import final, override
 
+from flowstack.ai import LLM
 from flowstack.core.utils.threading import run_async
 from flowstack.prompts import PromptLike, PromptStack
 from flowstack.typing import ToolCall
 
 class ToolLLM(ABC):
+    @classmethod
+    def from_llm(cls, llm: LLM) -> 'ToolLLM':
+        return _DelegateToolLLM(llm)
+
     @abstractmethod
     def get_tool_calls(self, input: PromptLike, **kwargs) -> list[ToolCall]:
         pass
@@ -29,3 +34,14 @@ class BaseToolLLM(ToolLLM, ABC):
 
     async def _aget_tool_calls(self, stack: PromptStack, **kwargs) -> list[ToolCall]:
         return await run_async(self._get_tool_calls, stack, **kwargs)
+
+class _DelegateToolLLM(BaseToolLLM):
+    def __init__(self, llm: LLM):
+        self._llm = llm
+
+    def _get_tool_calls(self, stack: PromptStack, **kwargs) -> list[ToolCall]:
+        pass
+
+    @override
+    async def _aget_tool_calls(self, stack: PromptStack, **kwargs) -> list[ToolCall]:
+        pass
