@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic, Literal, Optional, Protocol, TypeVar, Union
+from typing import Awaitable, Callable, Generic, Literal, Optional, TypeVar, Union
 
 from pydantic import BaseModel, Field
 
-from flowstack.core import Action, ServiceType
+from flowstack.core import ServiceType
 
 _Data = TypeVar('_Data')
 
@@ -45,18 +45,10 @@ class MachineContext(Generic[_Data], ABC):
     def update_data(self, data: _Data) -> None:
         pass
 
-class SyncAction[D](Protocol):
-    def __call__(self, context: MachineContext[D], **kwargs) -> None:
-        pass
-
-class AsyncAction[D](Protocol):
-    async def __call__(self, context: MachineContext[D], **kwargs) -> None:
-        pass
-
-type Action[D] = Union[SyncAction[D], AsyncAction[D]]
-Action = Action
-type Actions[D] = Union[Action[D], list[Action[D]]]
-Actions = Actions
+SyncAction = Callable[[MachineContext[_Data], ...], None]
+AsyncAction = Callable[[MachineContext[_Data], ...], Awaitable[None]]
+Action = Union[SyncAction[_Data], AsyncAction[_Data]]
+Actions = Union[Action[_Data], list[Action[_Data]]]
 
 _Guard = Callable[[_Data], bool]
 Guards = Union[_Guard[_Data], list[_Guard[_Data]]]
