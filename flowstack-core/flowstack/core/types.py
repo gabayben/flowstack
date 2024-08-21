@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, Generic, Literal, Optional, TypeVar, Union
+from typing import Awaitable, Callable, Generic, Literal, NotRequired, Optional, TypeVar, TypedDict, Union
 
 from pydantic import BaseModel, Field
 
@@ -61,57 +61,21 @@ type AfterTransition[D] = Union[
 ]
 AfterTransition = AfterTransition
 
-class StateOptions(BaseModel, Generic[_Data]):
+class StateOptions(TypedDict, Generic[_Data]):
     name: str
-    enter: Optional[Actions[_Data]] = Field(default=None)
-    exit: Optional[Actions[_Data]] = Field(default=None)
-    auto_exit: bool = False
-    final: bool = False
+    enter: NotRequired[Actions[_Data]]
+    exit: NotRequired[Actions[_Data]]
+    auto_exit: NotRequired[bool]
+    final: NotRequired[bool]
 
-    def __init__(
-        self,
-        name: str,
-        enter: Optional[Action[_Data]] = None,
-        exit: Optional[Action[_Data]] = None,
-        final: bool = False,
-        **kwargs
-    ):
-        super().__init__(
-            name=name,
-            enter=enter,
-            exit=exit,
-            final=final,
-            **kwargs
-        )
-
-class TransitionOptions(BaseModel, Generic[_Data]):
+class TransitionOptions(TypedDict, Generic[_Data]):
     trigger: str
     source: Union[str, list[str]]
     target: Optional[str]
-    before: Optional[Actions[_Data]] = Field(default=None)
-    after: Optional[AfterTransition[_Data]] = Field(default=None)
-    prepare: Optional[Actions[_Data]] = Field(default=None)
-    guards: Optional[Guards[_Data]] = Field(default=None)
-
-    def __init__(
-        self,
-        trigger: str,
-        source: Union[str, list[str]],
-        target: Optional[str],
-        before: Optional[Action[_Data]] = None,
-        after: Optional[AfterTransition[_Data]] = None,
-        prepare: Optional[Actions[_Data]] = None,
-        guards: Optional[Guards[_Data]] = None
-    ):
-        super().__init__(
-            trigger=trigger,
-            source=source,
-            target=target,
-            before=before,
-            after=after,
-            prepare=prepare,
-            guards=guards
-        )
+    before: NotRequired[Actions[_Data]]
+    after: NotRequired[AfterTransition[_Data]]
+    prepare: NotRequired[Actions[_Data]]
+    guards: NotRequired[Guards[_Data]]
 
 class TransitionProps(BaseModel, Generic[_Data]):
     trigger: str

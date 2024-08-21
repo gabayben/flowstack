@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, Optional, Type, TypeVar, Generic, Union
+from typing import Any, Callable, Optional, Type, TypeVar, Generic, Union, Unpack
 
 from pydantic import BaseModel, ConfigDict
 from transitions import Machine
@@ -8,7 +8,6 @@ from flowstack.core import (
     Action,
     Actions,
     AfterTransition,
-    Guards,
     Container,
     ServiceType,
     StateOptions,
@@ -109,73 +108,55 @@ class StateMachine(BaseModel, Generic[_Data]):
 
     # Definitions
 
-    def add_states(self, states: dict[str, StateOptions]) -> None:
-        for state, options in states.items():
-            self.add_state(state, **options.model_dump(exclude={'name'}))
+    def add_states(self, states: dict[str, StateOptions[_Data]]) -> None:
+        for options in states.values():
+            self.add_state(**options)
 
-    def add_state(
-        self,
-        state: str,
-        enter: Optional[Actions[_Data]] = None,
-        exit: Optional[Actions[_Data]] = None,
-        auto_exit: bool = False,
-        final: bool = False
-    ) -> None:
-        if auto_exit:
-            enter = enter or []
-            enter.append(next_state) # type: ignore
-        self._states[state] = StateOptions(
-            state,
-            enter=enter,
-            exit=exit,
-            final=final
-        )
+    def add_state(self, **kwargs: Unpack[StateOptions[_Data]]) -> None:
+        if kwargs['auto_exit']:
+            kwargs['enter'] = kwargs.get('enter', None) or []
+            kwargs['enter'].append(next_state) # type: ignore
+        self._states[kwargs['name']] = kwargs
         self._machine.add_state(
-            state,
-            on_enter=self._on_enter_actions(state),
-            on_exit=self._on_exit_actions(state)
+            kwargs['name'],
+            on_enter=self._on_enter_actions(kwargs['name']),
+            on_exit=self._on_exit_actions(kwargs['name'])
         )
 
     def _on_enter_actions(self, state: str) -> Optional[_MachineActions]:
         options = self._get_state(state)
-        if options.enter is None:
+        if options.get('enter', None) is None:
             return None
-        return self._create_actions(options.enter)
+        return self._create_actions(options.get('enter', None))
 
     def _on_exit_actions(self, state: str) -> Optional[_MachineActions]:
         options = self._get_state(state)
-        if options.exit is None:
+        if options.get('exit', None) is None:
             return None
-        return self._create_actions(options.exit)
+        return self._create_actions(options.get('exit', None))
 
-    def _get_state(self, state: str) -> StateOptions:
+    def _get_state(self, state: str) -> StateOptions[_Data]:
         try:
             return self._states[state]
         except KeyError:
             raise ValueError(f'Unable to find state {state}.')
 
-    def add_transitions(self, transitions: dict[str, TransitionOptions]) -> None:
+    def add_transitions(self, transitions: dict[str, TransitionOptions[_Data]]) -> None:
         for trigger, options in transitions.items():
-            self.add_transition(trigger, **options.model_dump(exclude={'trigger'}))
+            self.add_transition(**options)
 
-    def add_transition(
-        self,
-        trigger: str,
-        source: Union[str, list[str]],
-        target: Optional[str],
-        before: Optional[Actions[_Data]] = None,
-        after: Optional[AfterTransition[_Data]] = None,
-        prepare: Optional[Actions[_Data]] = None,
-        guards: Optional[Guards[_Data]] = None
-    ) -> None:
+    def add_transition(self, **kwargs: Unpack[TransitionOptions[_Data]]) -> None:
+        trigger = kwargs['trigger']
+        source = kwargs['source']
+        target = kwargs.get('target', None)
         self._transitions[trigger] = TransitionProps(
             trigger,
             source,
             target,
-            before=before,
-            after=self._after_transition(after),
-            prepare=prepare,
-            guards=guards
+            before=kwargs.get('before', None),
+            after=self._after_transition(kwargs.get('after', None)),
+            prepare=kwargs.get('prepare', None),
+            guards=kwargs.get('guards', None)
         )
         self._machine.add_transition(
             trigger,
