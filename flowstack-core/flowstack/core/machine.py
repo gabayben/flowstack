@@ -89,7 +89,7 @@ class StateMachine(BaseModel, Generic[_Data]):
     ):
         self._container = Container()
         self._model = _Model()
-        self._machine = Machine(model=self._model)
+        self._machine = Machine(model=self._model, queued=True)
         self._schema = schema
         self._state = initial_state
         self._data = initial_data
