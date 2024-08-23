@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, Generic, Literal, NotRequired, Optional, TypeVar, TypedDict, Union
+from typing import Awaitable, Callable, Generic, Literal, Optional, Required, TypeVar, TypedDict, Union
 
 from pydantic import BaseModel, Field
 
@@ -61,21 +61,21 @@ type AfterTransition[D] = Union[
 ]
 AfterTransition = AfterTransition
 
-class StateOptions(TypedDict, Generic[_Data]):
-    name: str
-    enter: NotRequired[Actions[_Data]]
-    exit: NotRequired[Actions[_Data]]
-    auto_exit: NotRequired[bool]
-    final: NotRequired[bool]
+class StateOptions(TypedDict, Generic[_Data], total=False):
+    name: Required[str]
+    enter: Optional[Actions[_Data]]
+    exit: Optional[Actions[_Data]]
+    auto_exit: Optional[bool]
+    final: Optional[bool]
 
-class TransitionOptions(TypedDict, Generic[_Data]):
-    trigger: str
-    source: Union[str, list[str]]
-    target: Optional[str]
-    before: NotRequired[Actions[_Data]]
-    after: NotRequired[AfterTransition[_Data]]
-    prepare: NotRequired[Actions[_Data]]
-    guards: NotRequired[Guards[_Data]]
+class TransitionOptions(TypedDict, Generic[_Data], total=False):
+    trigger: Required[str]
+    source: Required[Union[str, list[str]]]
+    target: Required[Optional[str]]
+    before: Optional[Actions[_Data]]
+    after: Optional[AfterTransition[_Data]]
+    prepare: Optional[Actions[_Data]]
+    guards: Optional[Guards[_Data]]
 
 class TransitionProps(BaseModel, Generic[_Data]):
     trigger: str
